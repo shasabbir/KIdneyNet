@@ -6,7 +6,7 @@
 ## Abstract
 Kidney abnormalities—including cysts, stones, and tumors—are common and can cause substantial morbidity, often requiring prompt imaging-based decisions and follow-up. Recent journal articles have indicated that, again, CT scans are important for urinary disease, although low-dose scans with the help of deep learning are becoming increasingly important for follow-up. However, clinicians require models they can trust, which has brought us to the fact that explainability is now not optional in medical AI.
 
-This proposal focuses on a four-class kidney CT dataset from IEEE Dataport: **cyst (3,709)**, **normal (5,077)**, **stone (1,377)**, and **tumor (2,283)**, for a total of **12,446 unique images**. Although the dataset title is *Kidney tumor*, it includes all four renal categories above and is therefore suitable for four-class kidney CT classification. The main goal is to develop a new Keras-based model, named **NephroXNet**, that is derived from EfficientNet-B4 but redesigned with dual attention, multi-scale fusion, and explainable AI. The model is not intended to be a plain EfficientNet baseline. It will be a new architecture that uses the EfficientNet-B4 backbone only as a starting feature extractor.
+This proposal focuses on a public four-class kidney CT dataset from IEEE DataPort (cyst/normal/stone/tumor). The main goal is to develop a new Keras-based model, named **NephroXNet**, that is derived from EfficientNet-B4 but redesigned with dual attention, multi-scale fusion, and explainable AI. The model is not intended to be a plain EfficientNet baseline. It will be a new architecture that uses the EfficientNet-B4 backbone only as a starting feature extractor.
 
 The proposed workflow has four parts. First, the CT images will be curated, normalized, and augmented with class-aware sampling because the stone class is the smallest class. Second, NephroXNet will combine an EfficientNet-B4 stem with channel attention, spatial attention, and a lightweight feature-fusion head. Third, we will benchmark NephroXNet against strong Keras baselines—`ResNet50`, `DenseNet121`, `InceptionV3`, `Xception`, `MobileNetV2`, `EfficientNetB0`, and plain `EfficientNetB4`—and discuss the results in relation to similar journal-reported approaches. Fourth, we will explain the model’s predictions using Grad-CAM++, Layer-wise Relevance Propagation, and attention-map visualizations, and we will check faithfulness using tests such as confidence drop after masking the most salient regions.
 
@@ -30,12 +30,15 @@ Most recent studies do **not** combine all of the following in one pipeline:
 
 This proposal addresses that gap. It keeps the full four-class setting (cyst, normal, stone, tumor) while still acknowledging that stone is the minority class and clinically important. This is important because real clinical confusion does not happen only between stone and normal; it can also occur between stone, cyst, and tumor findings. A model that separates all four categories is more useful than a narrow binary classifier.
 
-The dataset itself also motivates the work. The stone class has only **1,377** images, which is much smaller than the normal class with **5,077** images [1]. This imbalance can bias standard classifiers toward easier majority classes. A stone-aware design, weighted loss, and careful evaluation are therefore needed.
+The dataset itself also motivates the work because it is imbalanced, with **stone** as the minority class (see Dataset Description). This imbalance can bias standard classifiers toward easier majority classes. A stone-aware design, weighted loss, and careful evaluation are therefore needed.
 
 Another motivation is trust. Journal reviews in radiology and medical imaging repeatedly show that black-box predictions limit clinical acceptance [14]–[19]. A high-accuracy model is helpful, but a high-accuracy model with transparent visual evidence is much stronger. This is why the proposal includes XAI as a core component, not as an afterthought.
 
+## Problem Statement
+Despite the availability of kidney CT data (see Dataset Description), many existing classification pipelines mainly provide a predicted label and confidence; **explainable AI outputs are not consistently available** for clinicians to inspect why a case is labeled cyst/normal/stone/tumor. In addition, off-the-shelf transfer-learning baselines can achieve reasonable performance, but they may not deliver strong **accuracy and class-wise performance** under class imbalance (especially for the minority **stone** class). This project addresses the need for a four-class CT classifier that improves accuracy over standard baselines while providing integrated, faithful XAI visualizations.
+
 ## Main Objective
-The main objective of this project is to develop an **Explainable Four-Class Kidney CT Classification System** for **cyst**, **normal**, **stone**, and **tumor** images, with special emphasis on reliable performance under class imbalance (especially for the minority **stone** class). The system will be built around a new attention-enhanced architecture, **NephroXNet**, and will be validated through comparisons with strong Keras baselines and recent journal-reported models.
+The main objective of this project is to develop an **Explainable Four-Class Kidney CT Classification System** for **cyst**, **normal**, **stone**, and **tumor** images that improves accuracy and class-wise performance (especially for the minority **stone** class) while providing clinically readable XAI outputs. The system will be built around a new attention-enhanced architecture, **NephroXNet**, and will be validated through comparisons with strong Keras baselines and recent journal-reported models.
 
 ## Specific Objectives
 1. **To develop a new deep model, NephroXNet,** using an EfficientNet-B4-derived backbone, dual attention, and multi-scale feature fusion for four-class kidney CT classification.
@@ -85,9 +88,24 @@ This study aims to deliver a complete proposal-level framework for explainable k
 4. **A clinically readable XAI workflow:** The model will produce visual explanations that can be inspected class by class.
 5. **A paper-ready experimental plan:** The proposal is structured to support a future thesis chapter or journal manuscript.
 
+## Dataset Description
+The study will use the IEEE DataPort dataset by Jyotismita Chaki, published on August 30, 2024 [1]. Although the dataset title is *Kidney tumor*, it includes four labeled kidney CT categories and is suitable for four-class classification.
+
+- **Task and labels:** four-class image classification with labels **cyst**, **normal**, **stone**, and **tumor**.
+- **Size and class distribution (12,446 images total):** cyst (3,709), normal (5,077), stone (1,377), tumor (2,283).
+- **Data type (features):** kidney CT images (pixel-intensity values); the input features are the image pixels after resizing and normalization.
+- **Why appropriate:** it supports a clinically meaningful multi-class setting and provides a realistic imbalance scenario that motivates weighted learning and class-wise evaluation, especially for the minority stone class.
+
+## Tools and Technologies
+- Python
+- TensorFlow/Keras
+- NumPy, pandas, scikit-learn
+- OpenCV/Pillow (preprocessing)
+- Matplotlib
+
 ## Research Plan and Methodology
 ### Phase 1: Dataset preparation and experimental design
-The study will use the IEEE Dataport dataset by Jyotismita Chaki, published on August 30, 2024 [1]. The dataset contains **12,446 unique kidney CT images** distributed across four classes: **cyst (3,709)**, **normal (5,077)**, **stone (1,377)**, and **tumor (2,283)**. Since the class distribution is imbalanced, the experimental design will be stratified.
+The study will use the dataset described in the Dataset Description section [1]. Since the class distribution is imbalanced, the experimental design will be stratified.
 
 The dataset preparation stage will include:
 
@@ -214,14 +232,14 @@ The XAI analysis will be assessed by:
 
 If expert feedback becomes available later, the explanation maps can also be reviewed qualitatively by a domain specialist.
 
-### Phase 7: Expected outputs
-The project is expected to produce:
+## Expected Outcomes
+The project aims to deliver a four-class kidney CT classifier that improves performance over standard Keras baselines while providing usable explainability outputs.
 
-1. a trained and well-documented **NephroXNet** model,
-2. a benchmark comparison with strong Keras baselines,
-3. a discussion against recent journal models,
-4. an explainability atlas with representative examples,
-5. and a publishable experimental narrative for four-class kidney CT classification.
+- A trained and documented **NephroXNet** model for cyst/normal/stone/tumor classification
+- Benchmark results against standard Keras backbones with clear class-wise reporting
+- Improved accuracy and macro-averaged performance indicators relative to plain transfer-learning baselines (evaluated using the metrics in the Evaluation Protocol)
+- An explainability set (Grad-CAM++, LRP, attention maps) with qualitative examples and faithfulness checks via salient-region masking
+- A manuscript-ready experimental narrative (methods, ablations, results, and discussion)
 
 ## Figure 1: Overall workflow of the proposed research
 The full workflow diagram for the four-class setting is provided as an SVG file: [kidney_stone_workflow.svg](kidney_stone_workflow.svg).
